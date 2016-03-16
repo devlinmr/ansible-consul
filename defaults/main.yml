@@ -1,0 +1,76 @@
+###################################################################################################
+
+consul_name:  consul
+
+consul_user:  '{{ consul_name }}'
+consul_group: '{{ consul_user }}'
+
+###################################################################################################
+
+consul_home       : '{{ home.stdout }}'
+
+consul_data_dir   : '{{ consul_home       }}/data'
+consul_bin_dir    : '{{ consul_home       }}/bin'
+consul_config_dir : '{{ consul_home       }}/config'
+consul_config_file: '{{ consul_config_dir }}/config.json'
+
+consul_web_ui_dir : '{{ consul_home       }}/web_ui'
+
+consul_dir_mask   : '0750'
+
+###################################################################################################
+
+consul_http_port   : 8500
+consul_https_port  : 8543
+
+consul_dns_port    : 8600
+consul_rpc_port    : 8400
+consul_server_port : 8300
+consul_cluster_port: 8301
+
+###################################################################################################
+
+consul_service_name   : '{{ consul_name }}'
+consul_service_state  : started
+consul_service_run_as : '{{ consul_user }}'
+consul_service_command: '{{ consul_bin_dir }}/consul agent -config-dir={{ consul_config_dir }}'
+
+###################################################################################################
+
+consul_bootstrap          : false
+
+consul_retry_join_interval: 30s
+
+###################################################################################################
+
+consul_version        : 0.6.3
+consul_arch           : linux_amd64
+
+consul_repo_base_url  : https://releases.hashicorp.com/consul
+
+consul_zip_file       : '{{ consul_version }}_{{ consul_arch }}.zip'
+consul_zip_sha256     : b0532c61fec4a4f6d130c893fd8954ec007a6ad93effbe283a39224ed237e250
+
+consul_web_ui_zip_file: '{{ consul_version }}_web_ui.zip'
+consul_web_ui_sha256  : 93bbb300cacfe8de90fb3bd5ede7d37ae6ce014898edc520b9c96a676b2bbb72
+
+consul_web_ui_enabled : true
+
+###################################################################################################
+
+consul_secure       : false
+
+consul_ssl_key_file : '{{ consul_config_dir }}/consul_ssl.key'
+consul_ssl_cert_file: '{{ consul_config_dir }}/consul_ssl.crt'
+
+###################################################################################################
+
+consul_log_level: INFO
+consul_syslog   : true
+
+###################################################################################################
+
+consul_cluster_nodes     : '{{ groups["consul-nodes"] }}'
+consul_cluster_node_count: '{{ consul_cluster_nodes | count }}'
+
+###################################################################################################

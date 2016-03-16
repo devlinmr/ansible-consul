@@ -1,0 +1,90 @@
+###################################################################################################
+
+- name: debian | dependencies
+
+  with_items: consul_dependencies
+
+  apt : name={{ item }} state=present install_recommends=false
+
+  tags:
+    - database
+    - consul
+    - debian
+
+###################################################################################################
+
+- name: debian | allow | http
+
+  ufw : port={{ consul_http_port }} proto=tcp rule=allow
+
+  tags:
+    - database
+    - consul
+    - debian
+
+###################################################################################################
+
+- name: debian | allow | http
+
+  ufw : port={{ consul_http_port }} proto=tcp rule=allow
+
+  tags:
+    - database
+    - consul
+    - debian
+
+###################################################################################################
+
+- name: debian | allow | https
+
+  ufw : port={{ consul_https_port }} proto=tcp rule=allow
+
+  tags:
+    - database
+    - consul
+    - debian
+
+###################################################################################################
+
+- name: debian | allow | dns
+
+  ufw : port={{ consul_dns_port }} proto=tcp rule=allow
+
+  tags:
+    - database
+    - consul
+    - debian
+
+###################################################################################################
+
+- name: debian | allow | rpc
+
+  ufw : port={{ consul_rpc_port }} proto=tcp rule=allow
+
+  tags:
+    - database
+    - consul
+    - debian
+
+###################################################################################################
+
+- name: debian | allow | rpc server
+
+  ufw : port={{ consul_server_port }} proto=tcp rule=allow
+
+  tags:
+    - database
+    - consul
+    - debian
+
+###################################################################################################
+
+- name: debian | allow | rpc cluster
+
+  ufw : port={{ consul_cluster_port }} proto=tcp rule=allow
+
+  tags:
+    - database
+    - consul
+    - debian
+###################################################################################################

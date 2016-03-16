@@ -1,0 +1,232 @@
+###################################################################################################
+
+- name: import
+
+  include_vars: '{{ ansible_os_family | lower }}'
+
+  tags:
+    - database
+    - consul
+
+###################################################################################################
+
+- name: debian
+
+  when: ansible_os_family | lower == 'debian'
+
+  include: debian.yml
+
+  tags:
+    - database
+    - consul
+
+###################################################################################################
+
+- name: user | create
+
+  user: name={{ consul_user  }}
+       group={{ consul_group }}
+       state=present
+
+  tags:
+    - database
+    - consul
+
+###################################################################################################
+
+- name: discover | home
+
+  shell: echo ~{{ consul_user }}
+
+  changed_when: false
+
+  register: home
+
+  tags:
+    - database
+    - consul
+
+###################################################################################################
+
+- name: directory | data directory
+
+  sudo_user: '{{ consul_user }}'
+
+  file: dest={{ consul_data_dir }}
+       state=directory
+
+  tags:
+    - database
+    - consul
+
+###################################################################################################
+
+- name: directory | config directory
+
+  sudo_user: '{{ consul_user }}'
+
+  file: dest={{ consul_config_dir }}
+       state=directory
+
+  tags:
+    - database
+    - consul
+
+###################################################################################################
+
+- name: directory | bin directory
+
+  sudo_user: '{{ consul_user }}'
+
+  file: dest={{ consul_bin_dir }}
+       state=directory
+
+  tags:
+    - database
+    - consul
+
+###################################################################################################
+
+- name: directory | web-ui directory
+
+  sudo_user: '{{ consul_user }}'
+
+  file: dest={{ consul_web_ui_dir }}
+       state=directory
+
+  when: consul_web_ui_enabled
+
+  tags:
+    - database
+    - consul
+
+###################################################################################################
+
+- name: directory | data directory
+
+  sudo_user: '{{ consul_user }}'
+
+  file: dest={{ consul_data_dir }}
+       state=directory
+
+  tags:
+    - database
+    - consul
+
+###################################################################################################
+
+- name: download | consul
+
+  get_url: url={{ consul_repo_base_url }}/{{ consul_zip_file }}
+          dest={{ consul_home }}/{{ consul_zip_file }}
+     sha256sum={{ consul_zip_sha256 }}
+
+  register: new_zip
+
+  tags:
+    - database
+    - consul
+
+###################################################################################################
+
+- name: download | consul web ui
+
+  get_url: url={{ consul_repo_base_url }}/{{ consul_web_ui_zip_file }}
+          dest={{ consul_home }}/{{ consul_web_ui_zip_file }}
+     sha256sum={{ consul_web_ui_sha256 }}
+
+  register: new_web_ui_zip
+
+  when: consul_web_ui_enabled
+
+  tags:
+    - database
+    - consul
+
+###################################################################################################
+
+- name: extract
+
+  sudo_user: '{{ consul_user }}'
+
+  unarchive: src={{ consul_home }}/{{ consul_zip_file }}
+            dest={{ consul_bin_dir }}
+            copy=no
+         creates={{ consul_bin_dir }}/consul
+
+  tags:
+    - database
+    - consul
+
+###################################################################################################
+
+- name: extract web ui
+
+  sudo_user: '{{ consul_user }}'
+
+  unarchive: src={{ consul_home }}/{{ consul_web_ui_zip_file }}
+            dest={{ consul_web_ui_dir }}
+            copy=no
+         creates={{ consul_web_ui_dir }}/dist/index.html
+
+  tags:
+    - database
+    - consul
+
+###################################################################################################
+
+- name: keygen
+
+  command: '{{ consul_bin_dir }}/consul keygen creates={{ consul_config_dir }}/config.json'
+
+  register: consul_whisper_key
+
+  when: inventory_hostname == consul_cluster_nodes[0]
+
+  tags:
+    - database
+    - consul
+
+###################################################################################################
+
+- name: keygen set fact
+
+  set_fact: consul_whisper_key_fact={{ consul_whisper_key.stdout }}
+
+  when: inventory_hostname == consul_cluster_nodes[0] and consul_whisper_key is defined
+
+  tags:
+    - database
+    - consul
+
+###################################################################################################
+
+- name: config file
+
+  sudo_user: '{{ consul_user }}'
+
+  template: src=config.json.j2
+           dest={{ consul_config_dir }}/config.json
+          force=no
+
+  when:  consul_whisper_key is defined
+
+  register: config
+
+  tags:
+    - database
+    - consul
+
+###################################################################################################
+
+- name: service restart
+
+  set_fact: consul_service_state=restarted
+
+  when: config.changed
+
+  tags:
+    - database
+    - consul
+
+###################################################################################################

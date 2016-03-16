@@ -1,0 +1,33 @@
+{
+  "bootstrap_expect": {{ consul_cluster_node_count }},
+  "retry_join": [
+{% for server in consul_cluster_nodes %}
+    "{{ hostvars[server].ansible_all_ipv4_addresses|last }}"{% if not loop.last %},{% endif %}
+
+{% endfor %}  ],
+  "retry_interval": "{{ consul_retry_join_interval }}",
+  "server"  : true,
+  "data_dir": "{{ consul_data_dir }}",
+  "bind_addr": "{{ ansible_all_ipv4_addresses|last }}",
+  "client_addr": "{{ ansible_all_ipv4_addresses|last }}",
+  "ports": {
+    "http"  : {{ consul_http_port   }},
+    "https" : {{ consul_https_port  }},
+    "rpc"   : {{ consul_rpc_port    }},
+    "dns"   : {{ consul_dns_port    }},
+    "server": {{ consul_server_port }}
+  },
+  "encrypt"  : "{{ hostvars[consul_cluster_nodes[0]].consul_whisper_key_fact }}",
+{% if consul_secure %}
+  "key_file" : "{{ consul_ssl_key_file     }}",
+  "cert_file": "{{ consul_ssl_cert_file    }}",
+{% endif %}
+
+  "log_level"    : "{{ consul_log_level }}",
+{% if consul_syslog %}
+  "enable_syslog": true,
+{% endif %}
+{% if consul_web_ui_enabled %}
+  "ui_dir": "{{ consul_web_ui_dir }}/dist"
+{% endif %}
+}
