@@ -18,6 +18,9 @@ consul_web_ui_dir : '{{ consul_home       }}/web_ui'
 
 consul_dir_mask   : '0750'
 
+consul_enabled    : true
+consul_server     : true
+
 ###################################################################################################
 
 consul_http_port   : 8500
@@ -35,6 +38,8 @@ consul_service_state  : started
 consul_service_run_as : '{{ consul_user }}'
 consul_service_command: '{{ consul_bin_dir }}/consul agent -config-dir={{ consul_config_dir }}'
 
+systemd_service_base  : /etc/systemd/system
+
 ###################################################################################################
 
 consul_bootstrap          : false
@@ -46,12 +51,12 @@ consul_retry_join_interval: 30s
 consul_version        : 0.6.3
 consul_arch           : linux_amd64
 
-consul_repo_base_url  : https://releases.hashicorp.com/consul
+consul_repo_base_url  : 'https://releases.hashicorp.com/consul/{{ consul_version }}'
 
-consul_zip_file       : '{{ consul_version }}_{{ consul_arch }}.zip'
+consul_zip_file       : 'consul_{{ consul_version }}_{{ consul_arch }}.zip'
 consul_zip_sha256     : b0532c61fec4a4f6d130c893fd8954ec007a6ad93effbe283a39224ed237e250
 
-consul_web_ui_zip_file: '{{ consul_version }}_web_ui.zip'
+consul_web_ui_zip_file: 'consul_{{ consul_version }}_web_ui.zip'
 consul_web_ui_sha256  : 93bbb300cacfe8de90fb3bd5ede7d37ae6ce014898edc520b9c96a676b2bbb72
 
 consul_web_ui_enabled : true

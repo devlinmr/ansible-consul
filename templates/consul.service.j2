@@ -1,0 +1,10 @@
+[Unit]
+Description=Consul Server
+
+[Service]
+WorkingDirectory={{ consul_home }}
+ExecStart={{ consul_service_command }}
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

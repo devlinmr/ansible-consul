@@ -5,7 +5,7 @@
   include_vars: '{{ ansible_os_family | lower }}'
 
   tags:
-    - database
+    - brain
     - consul
 
 ###################################################################################################
@@ -17,7 +17,28 @@
   include: debian.yml
 
   tags:
-    - database
+    - brain
+    - consul
+
+###################################################################################################
+
+- name: ec2 | facts
+
+  ec2_facts:
+
+  tags:
+    - brain
+    - consul
+
+###################################################################################################
+
+- name: group | create
+
+  group: name={{ consul_group  }}
+        state=present
+
+  tags:
+    - brain
     - consul
 
 ###################################################################################################
@@ -29,7 +50,7 @@
        state=present
 
   tags:
-    - database
+    - brain
     - consul
 
 ###################################################################################################
@@ -43,7 +64,7 @@
   register: home
 
   tags:
-    - database
+    - brain
     - consul
 
 ###################################################################################################
@@ -56,7 +77,7 @@
        state=directory
 
   tags:
-    - database
+    - brain
     - consul
 
 ###################################################################################################
@@ -69,7 +90,7 @@
        state=directory
 
   tags:
-    - database
+    - brain
     - consul
 
 ###################################################################################################
@@ -82,7 +103,7 @@
        state=directory
 
   tags:
-    - database
+    - brain
     - consul
 
 ###################################################################################################
@@ -97,7 +118,7 @@
   when: consul_web_ui_enabled
 
   tags:
-    - database
+    - brain
     - consul
 
 ###################################################################################################
@@ -110,7 +131,7 @@
        state=directory
 
   tags:
-    - database
+    - brain
     - consul
 
 ###################################################################################################
@@ -124,7 +145,7 @@
   register: new_zip
 
   tags:
-    - database
+    - brain
     - consul
 
 ###################################################################################################
@@ -140,7 +161,7 @@
   when: consul_web_ui_enabled
 
   tags:
-    - database
+    - brain
     - consul
 
 ###################################################################################################
@@ -155,7 +176,7 @@
          creates={{ consul_bin_dir }}/consul
 
   tags:
-    - database
+    - brain
     - consul
 
 ###################################################################################################
@@ -170,7 +191,7 @@
          creates={{ consul_web_ui_dir }}/dist/index.html
 
   tags:
-    - database
+    - brain
     - consul
 
 ###################################################################################################
@@ -184,7 +205,7 @@
   when: inventory_hostname == consul_cluster_nodes[0]
 
   tags:
-    - database
+    - brain
     - consul
 
 ###################################################################################################
@@ -196,7 +217,7 @@
   when: inventory_hostname == consul_cluster_nodes[0] and consul_whisper_key is defined
 
   tags:
-    - database
+    - brain
     - consul
 
 ###################################################################################################
@@ -214,7 +235,45 @@
   register: config
 
   tags:
-    - database
+    - brain
+    - consul
+
+###################################################################################################
+
+- name: service file
+
+  template: src=consul.service.j2
+           dest={{ systemd_service_base }}/consul.service
+          force=no
+
+  register: service
+
+  tags:
+    - brain
+    - consul
+
+###################################################################################################
+
+- name: reload
+
+  command: 'systemctl daemon-reload'
+
+  when: service.changed
+
+  tags:
+    - brain
+    - consul
+
+###################################################################################################
+
+- name: service configure
+
+  service: name={{ consul_name }}
+        enabled={{ consul_enabled | default('yes') }}
+          state='started'
+
+  tags:
+    - brain
     - consul
 
 ###################################################################################################
@@ -223,10 +282,10 @@
 
   set_fact: consul_service_state=restarted
 
-  when: config.changed
+  when: config.changed or service.changed
 
   tags:
-    - database
+    - brain
     - consul
 
 ###################################################################################################

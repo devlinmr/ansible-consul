@@ -6,7 +6,9 @@
 
 {% endfor %}  ],
   "retry_interval": "{{ consul_retry_join_interval }}",
+{% if consul_server %}
   "server"  : true,
+{% endif %}
   "data_dir": "{{ consul_data_dir }}",
   "bind_addr": "{{ ansible_all_ipv4_addresses|last }}",
   "client_addr": "{{ ansible_all_ipv4_addresses|last }}",
