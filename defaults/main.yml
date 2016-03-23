@@ -23,6 +23,9 @@ consul_server     : true
 
 ###################################################################################################
 
+consul_bind_addr   : '0.0.0.0'
+consul_client_addr : '0.0.0.0'
+
 consul_http_port   : 8500
 consul_https_port  : 8543
 
@@ -30,6 +33,9 @@ consul_dns_port    : 8600
 consul_rpc_port    : 8400
 consul_server_port : 8300
 consul_cluster_port: 8301
+consul_interface   : eth0
+
+host_firewall      : false
 
 ###################################################################################################
 
@@ -63,10 +69,15 @@ consul_web_ui_enabled : true
 
 ###################################################################################################
 
-consul_secure       : false
+consul_secure                   : true
 
-consul_ssl_key_file : '{{ consul_config_dir }}/consul_ssl.key'
-consul_ssl_cert_file: '{{ consul_config_dir }}/consul_ssl.crt'
+consul_ssl_key_file             : '{{ consul_config_dir }}/consul_tls.key'
+consul_ssl_cert_file            : '{{ consul_config_dir }}/consul_tls.crt'
+consul_tls_self_sign_common_name: '/CN={{ ansible_fqdn }}'
+consul_tls_self_sign_crypt      : rsa
+consul_tls_self_sign_length     : 2048
+consul_tls_self_sign_days       : 365
+consul_tls_self_sign_command    : 'openssl req -x509 -newkey {{ consul_tls_self_sign_crypt }}:{{ consul_tls_self_sign_length }} -keyout {{ consul_ssl_key_file }} -out {{ consul_ssl_cert_file }} -days {{ consul_tls_self_sign_days }} -subj "{{consul_tls_self_sign_common_name }}" -nodes'
 
 ###################################################################################################
 
@@ -75,7 +86,7 @@ consul_syslog   : true
 
 ###################################################################################################
 
-consul_cluster_nodes     : '{{ groups["consul-nodes"] }}'
+consul_cluster_nodes     : '{{ groups["consul"] }}'
 consul_cluster_node_count: '{{ consul_cluster_nodes | count }}'
 
 ###################################################################################################

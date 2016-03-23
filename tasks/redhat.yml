@@ -1,0 +1,129 @@
+###################################################################################################
+
+- name: redhat | package
+
+  with_items: '{{ consul_dependencies }}'
+
+  yum: name={{ item }} state=present
+
+  tags:
+    - brain
+    - consul
+    - redhat
+
+###################################################################################################
+
+- name: redhat | allow | http
+
+  when: host_firewall
+
+  firewalld: port={{ consul_http_port }}/tcp
+            state=enabled
+        permanent=true
+
+  register: config
+
+  tags:
+    - brain
+    - consul
+    - redhat
+
+###################################################################################################
+
+- name: redhat | allow | https
+
+  when: host_firewall
+
+  firewalld: port={{ consul_https_port }}/tcp
+            state=enabled
+        permanent=true
+
+  register: config
+
+  tags:
+    - brain
+    - consul
+    - redhat
+
+###################################################################################################
+
+- name: redhat | allow | dns
+
+  when: host_firewall
+
+  firewalld: port={{ consul_dns_port }}/tcp
+            state=enabled
+        permanent=true
+
+  register: config
+
+  tags:
+    - brain
+    - consul
+    - redhat
+
+###################################################################################################
+
+- name: redhat | allow | rpc
+
+  when: host_firewall
+
+  firewalld: port={{ consul_rpc_port }}/tcp
+            state=enabled
+        permanent=true
+
+  register: config
+
+  tags:
+    - brain
+    - consul
+    - redhat
+
+###################################################################################################
+
+- name: redhat | allow | rpc server
+
+  when: host_firewall
+
+  firewalld: port={{ consul_server_port }}/tcp
+            state=enabled
+        permanent=true
+
+  register: config
+
+  tags:
+    - brain
+    - consul
+    - redhat
+
+###################################################################################################
+
+- name: redhat | allow | rpc cluster
+
+  when: host_firewall
+
+  firewalld: port={{ consul_cluster_port }}/tcp
+            state=enabled
+        permanent=true
+
+  register: config
+
+  tags:
+    - brain
+    - consul
+    - redhat
+
+###################################################################################################
+
+- name: redhat | restart firewalld
+
+  service: name={{ firewall_service }} state=restarted
+
+  when: config.changed
+
+  tags:
+    - brain
+    - consul
+    - redhat
+
+###################################################################################################

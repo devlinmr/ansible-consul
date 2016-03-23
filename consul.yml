@@ -2,9 +2,9 @@
 
 - name: consul
 
-  hosts: consul-nodes
+  hosts: consul
 
-  sudo: true
+  become: true
 
   roles:
 

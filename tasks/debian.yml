@@ -2,7 +2,7 @@
 
 - name: debian | dependencies
 
-  with_items: consul_dependencies
+  with_items: {{ consul_dependencies }}
 
   apt : name={{ item }} state=present install_recommends=false
 
@@ -15,16 +15,7 @@
 
 - name: debian | allow | http
 
-  ufw : port={{ consul_http_port }} proto=tcp rule=allow
-
-  tags:
-    - brain
-    - consul
-    - debian
-
-###################################################################################################
-
-- name: debian | allow | http
+  when: host_firewall
 
   ufw : port={{ consul_http_port }} proto=tcp rule=allow
 
@@ -37,6 +28,8 @@
 
 - name: debian | allow | https
 
+  when: host_firewall
+
   ufw : port={{ consul_https_port }} proto=tcp rule=allow
 
   tags:
@@ -47,6 +40,8 @@
 ###################################################################################################
 
 - name: debian | allow | dns
+
+  when: host_firewall
 
   ufw : port={{ consul_dns_port }} proto=tcp rule=allow
 
@@ -59,6 +54,8 @@
 
 - name: debian | allow | rpc
 
+  when: host_firewall
+
   ufw : port={{ consul_rpc_port }} proto=tcp rule=allow
 
   tags:
@@ -69,6 +66,8 @@
 ###################################################################################################
 
 - name: debian | allow | rpc server
+
+  when: host_firewall
 
   ufw : port={{ consul_server_port }} proto=tcp rule=allow
 
@@ -81,10 +80,13 @@
 
 - name: debian | allow | rpc cluster
 
+  when: host_firewall
+
   ufw : port={{ consul_cluster_port }} proto=tcp rule=allow
 
   tags:
     - brain
     - consul
     - debian
+
 ###################################################################################################

@@ -19,16 +19,20 @@
   tags:
     - brain
     - consul
+    - debian
 
 ###################################################################################################
 
-- name: ec2 | facts
+- name: debian
 
-  ec2_facts:
+  when: ansible_os_family | lower == 'redhat'
+
+  include: redhat.yml
 
   tags:
     - brain
     - consul
+    - redhat
 
 ###################################################################################################
 
@@ -71,7 +75,7 @@
 
 - name: directory | data directory
 
-  sudo_user: '{{ consul_user }}'
+  become_user: '{{ consul_user }}'
 
   file: dest={{ consul_data_dir }}
        state=directory
@@ -84,7 +88,7 @@
 
 - name: directory | config directory
 
-  sudo_user: '{{ consul_user }}'
+  become_user: '{{ consul_user }}'
 
   file: dest={{ consul_config_dir }}
        state=directory
@@ -97,7 +101,7 @@
 
 - name: directory | bin directory
 
-  sudo_user: '{{ consul_user }}'
+  become_user: '{{ consul_user }}'
 
   file: dest={{ consul_bin_dir }}
        state=directory
@@ -110,25 +114,12 @@
 
 - name: directory | web-ui directory
 
-  sudo_user: '{{ consul_user }}'
+  become_user: '{{ consul_user }}'
 
   file: dest={{ consul_web_ui_dir }}
        state=directory
 
   when: consul_web_ui_enabled
-
-  tags:
-    - brain
-    - consul
-
-###################################################################################################
-
-- name: directory | data directory
-
-  sudo_user: '{{ consul_user }}'
-
-  file: dest={{ consul_data_dir }}
-       state=directory
 
   tags:
     - brain
@@ -168,7 +159,7 @@
 
 - name: extract
 
-  sudo_user: '{{ consul_user }}'
+  become_user: '{{ consul_user }}'
 
   unarchive: src={{ consul_home }}/{{ consul_zip_file }}
             dest={{ consul_bin_dir }}
@@ -183,7 +174,7 @@
 
 - name: extract web ui
 
-  sudo_user: '{{ consul_user }}'
+  become_user: '{{ consul_user }}'
 
   unarchive: src={{ consul_home }}/{{ consul_web_ui_zip_file }}
             dest={{ consul_web_ui_dir }}
@@ -222,9 +213,56 @@
 
 ###################################################################################################
 
+- name: pre-prepared ssl key
+
+  become_user: '{{ consul_user }}'
+
+  when: consul_tls_key is defined and consul_tls_key is not none
+
+  template: src=consul_tls.key.j2
+           dest={{ consul_config_dir }}/consul_tls.key
+           mode=0600
+
+  tags:
+    - brain
+    - consul
+
+###################################################################################################
+
+- name: pre-prepared ssl crt
+
+  become_user: '{{ consul_user }}'
+
+  when: consul_tls_crt is defined and consul_tls_crt is not none
+
+  template: src=consul_tls.crt.j2
+           dest={{ consul_config_dir }}/consul_tls.crt
+
+  tags:
+    - brain
+    - consul
+
+###################################################################################################
+
+- name: generate self-signed keypair
+
+  become_user: '{{ consul_user }}'
+
+  when: consul_tls_key is not defined or consul_tls_crt is not defined
+
+  command: '{{ consul_tls_self_sign_command }}'
+  args:
+    creates: '{{ consul_ssl_key_file }}'
+
+  tags:
+    - brain
+    - consul
+
+###################################################################################################
+
 - name: config file
 
-  sudo_user: '{{ consul_user }}'
+  become_user: '{{ consul_user }}'
 
   template: src=config.json.j2
            dest={{ consul_config_dir }}/config.json
@@ -233,6 +271,19 @@
   when:  consul_whisper_key is defined
 
   register: config
+
+  tags:
+    - brain
+    - consul
+
+###################################################################################################
+
+- name: config perms
+
+  file: path={{ consul_home }}
+       state=directory
+        mode="o-rwx"
+     recurse=true
 
   tags:
     - brain
